@@ -17,8 +17,6 @@ class _SecondPageState extends State<SecondPage> {
   TextEditingController controller = TextEditingController();
 
   void addItem(String value) async {
-    DateFormat format = DateFormat.yMMMMd('en_US');
-    DateTime now = DateTime.now();
     if (value.isNotEmpty) {
       await FirebaseFirestore.instance
           .collection("Users")
@@ -26,7 +24,7 @@ class _SecondPageState extends State<SecondPage> {
           .collection("weight")
           .add({
         "weight": value,
-        "date_time": format.format(now),
+        "date_time": DateTime.now().toString(),
       }).whenComplete(() {
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text("Added!")));
@@ -75,7 +73,7 @@ class _SecondPageState extends State<SecondPage> {
           ),
           ElevatedButton(
               onPressed: () => signOut(context, widget.title),
-              child: const Text("Sign out?")),
+              child: const Text("Log out?")),
         ],
       ),
     );
@@ -94,7 +92,7 @@ void signOut(BuildContext context, String id) async {
   //     .whenComplete(() {
   FirebaseAuth.instance.signOut().whenComplete(() {
     ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text("Added!")));
+        .showSnackBar(const SnackBar(content: Text("Signed out!")));
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const MyHomePage(title: "Login")),
@@ -167,6 +165,7 @@ void update(
 }
 
 Widget weights(String id) {
+  DateFormat format = DateFormat.yMMMMd('en_US');
   Query firestore = FirebaseFirestore.instance
       .collection('Users')
       .doc(id)
@@ -176,13 +175,16 @@ Widget weights(String id) {
       stream: firestore.snapshots(),
       builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
         if (!snapshot.hasData) {
-          return const CircularProgressIndicator();
+          return const Center(child: CircularProgressIndicator());
         }
         return ListView.builder(
           shrinkWrap: true,
           padding: const EdgeInsets.only(bottom: 1.0),
           itemCount: snapshot.data!.docs.length,
           itemBuilder: (context, index) {
+            DateTime date =
+                DateTime.parse(snapshot.data!.docs[index]["date_time"]);
+            String dt = format.format(date);
             return RaisedButton(
                 onPressed: () {
                   showDialog(
@@ -194,7 +196,7 @@ Widget weights(String id) {
                           snapshot.data!.docs[index]['weight']));
                 },
                 child: Text(
-                  "${snapshot.data!.docs[index]["weight"]}kgs on ${snapshot.data!.docs[index]["date_time"]}",
+                  "${snapshot.data!.docs[index]["weight"]}kgs on $dt",
                   style: const TextStyle(fontSize: 20.00),
                 ));
           },
