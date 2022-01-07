@@ -155,7 +155,11 @@ void update(
       .doc(userId)
       .collection("weight")
       .doc(id)
-      .update({"weight": value}).whenComplete(() {
+      .set(
+          {"weight": value},
+          SetOptions(
+            merge: true,
+          )).whenComplete(() {
     Navigator.of(context, rootNavigator: true).pop();
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text("Updated!")));
